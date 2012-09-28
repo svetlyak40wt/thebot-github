@@ -1,0 +1,4 @@
+.*.swp
+*.pyc
+/env
+/thebot_github.egg-info/
