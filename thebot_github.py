@@ -21,20 +21,11 @@ class Plugin(thebot.Plugin):
             help='Base URL to GitHub\'s api. Default: https://api.github.com.'
         )
 
-    def get_callbacks(self):
-        return [
-            ('show issues (?P<username>.+)/(?P<repository>.+)', self.show_issues),
-            ('track issues (?P<username>.+)/(?P<repository>.+)', self.track_issues),
-            ('print multiline', self.print_lines),
-        ]
 
-    def print_lines(self, request, match):
-        request.respond('Some line\nwith a newline.')
-
-    def track_issues(self, request, match):
-        username, repository = match.group('username'), match.group('repository')
-
+    @thebot.route('track issues (?P<username>.+)/(?P<repository>.+)')
+    def track_issues(self, request, username, repository):
         issues = self.get_issues(request, username, repository)
+
         if issues is not None:
             issues_numbers = set(item['number'] for item in issues)
             issues_map = dict((item['number'], item) for item in issues)
@@ -84,8 +75,8 @@ class Plugin(thebot.Plugin):
             thread.start()
 
 
-    def show_issues(self, request, match):
-        username, repository = match.group('username'), match.group('repository')
+    @thebot.route('show issues (?P<username>.+)/(?P<repository>.+)')
+    def show_issues(self, request, username, repository):
         data = self.get_issues(request, username, repository)
 
         if data is not None:
