@@ -12,6 +12,7 @@ class Plugin(thebot.Plugin):
         super(Plugin, self).__init__(args)
         self._issues = {}
         self._issues_map = {}
+        self._track_request = self.storage.get('track_request')
 
     @staticmethod
     def get_options(parser):
@@ -21,6 +22,18 @@ class Plugin(thebot.Plugin):
             help='Base URL to GitHub\'s api. Default: https://api.github.com.'
         )
 
+    @thebot.route('/github')
+    def web_hook(self, request):
+        event = request.environ['HTTP_X_GITHUB_EVENT']
+        if self._track_request is not None:
+            self._track_request.respond('Received {} hook'.format(event))
+        request.respond('ok')
+
+
+    @thebot.route('gh track')
+    def track(self, request):
+        self.storage['track_request'] = request
+        request.respond('I\'ll track github requests now')
 
     @thebot.route('track issues (?P<username>.+)/(?P<repository>.+)')
     def track_issues(self, request, username, repository):
