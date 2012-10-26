@@ -20,7 +20,7 @@ setup(
     ],
     py_modules=['thebot_github'],
     install_requires=[
-        'thebot',
+        'thebot>=0.2.0',
         'requests',
         'anyjson',
     ],

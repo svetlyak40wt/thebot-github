@@ -1,13 +1,14 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import anyjson
 import requests
-import thebot
 import threading
 import time
 
+from thebot import Plugin, on_command
 
-class Plugin(thebot.Plugin):
+
+class Plugin(Plugin):
     def __init__(self, args):
         super(Plugin, self).__init__(args)
         self._issues = {}
@@ -22,20 +23,24 @@ class Plugin(thebot.Plugin):
             help='Base URL to GitHub\'s api. Default: https://api.github.com.'
         )
 
-    @thebot.route('/github')
+    @on_command('/github')
     def web_hook(self, request):
         event = request.environ['HTTP_X_GITHUB_EVENT']
+        payload = anyjson.deserialize(request.POST['payload'][0])
+
         if self._track_request is not None:
             self._track_request.respond('Received {} hook'.format(event))
-        request.respond('ok')
 
+        callback = getattr(self, 'on_' + event.lower(), None)
+        if callback is not None:
+            callback(request, payload)
 
-    @thebot.route('gh track')
+    @on_command('gh track')
     def track(self, request):
         self.storage['track_request'] = request
         request.respond('I\'ll track github requests now')
 
-    @thebot.route('track issues (?P<username>.+)/(?P<repository>.+)')
+    @on_command('track issues (?P<username>.+)/(?P<repository>.+)')
     def track_issues(self, request, username, repository):
         issues = self.get_issues(request, username, repository)
 
@@ -88,7 +93,7 @@ class Plugin(thebot.Plugin):
             thread.start()
 
 
-    @thebot.route('show issues (?P<username>.+)/(?P<repository>.+)')
+    @on_command('show issues (?P<username>.+)/(?P<repository>.+)')
     def show_issues(self, request, username, repository):
         data = self.get_issues(request, username, repository)
 
